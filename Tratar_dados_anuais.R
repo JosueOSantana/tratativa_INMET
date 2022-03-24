@@ -1,6 +1,7 @@
 #INMET climates data
 #Defines temperatures for HVAC-R projects
 #Josué Santana
+#Source: https://portal.inmet.gov.br/dadoshistoricos
 
 #Librarys
 library(readr)
@@ -9,13 +10,14 @@ library(stringr)
 library(psychrolib)
 
 #Project folder
+#pasta <- "C:/JOSUÉ/TRABALHO/tratativa_INMET"
 pasta <- getwd()
 
 #SI System for psychrolib library
 SetUnitSystem("SI")
 
 #Defines the year and set the folder of the files to be unified
-ano <- "2020"
+ano <- "2015"
 setwd(ano)
 
 #Lists the csv files for each weather station
