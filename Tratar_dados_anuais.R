@@ -7,13 +7,9 @@
 library(readr)
 library(dplyr)
 library(stringr)
-library(psychrolib)
 
 #Project folder
 pasta <- getwd()
-
-#SI System for psychrolib library
-SetUnitSystem("SI")
 
 #Defines the year and set the folder of the files to be unified
 ano <- "2010"
@@ -134,14 +130,9 @@ for(i in lista[2:length(lista)])
 #Excludes Antarctica's weather station
 df_unif <- filter(df_unif, ID_estacao != "C891")
 
-#Precisa tratar os valores NA por mês primeiro
-#Includes Wet Bulb Temperatures
-#df_unif <- df_unif %>% mutate(tbu_max = round(GetTWetBulbFromRelHum(df_unif$temph_max, df_unif$urph_min/100, df_unif$patm_max*100),1),
-#                              tbu_min = round(GetTWetBulbFromRelHum(df_unif$temph_min, df_unif$urph_max/100, df_unif$patm_min*100),1))
-
 #Returns the main folder and generates a treated and unified csv file by year
 setwd(pasta)
-write.csv2(df_unif, paste("Dados unificados - ", ano, ".csv"), row.names = FALSE)
+write.csv2(df_unif, paste("Dados unificados - ", ano, ".csv", sep = ""), row.names = FALSE)
 
 #_____________________________________________
 
