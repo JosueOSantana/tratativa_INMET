@@ -42,17 +42,20 @@ df_unif <- df_unif %>% rename("dia" = "V1",
                               "urph_min" = "V15") %>%
                         select(ID_estacao, local, estado, everything())
 
-#Replaces NA values by mean values - Grouped by day and temperatures
+#Replaces -9999 by NA
+df_unif[df_unif == -9999] <- NA
+
+#Replaces NA values by mean values - Grouped by day and temperatures - sAME YEAR
 medias_dia <- df_unif %>% group_by(dia) %>% 
                     summarise(patm_max = round(mean(patm_max, na.rm = T),1),
                               patm_min = round(mean(patm_min, na.rm = T),1),
                               temph_max = round(mean(temph_max, na.rm = T),1),
                               temph_min = round(mean(temph_min, na.rm = T),1))
 
-medias_tempmax <- df_unif %>% group_by(temph_max) %>% 
+medias_tempmin <- df_unif %>% group_by(temph_min) %>% 
                     summarise(urph_max = round(mean(urph_max, na.rm = T),0))
 
-medias_tempmin <- df_unif %>% group_by(temph_min) %>% 
+medias_tempmax <- df_unif %>% group_by(temph_max) %>% 
                     summarise(urph_min = round(mean(urph_min, na.rm = T),0))
 
 df_unif <- df_unif %>% ungroup () %>% droplevels(.)
@@ -62,9 +65,9 @@ df_unif <- df_unif %>% left_join(medias_dia, by = c("dia"), suffix = c("", ".y")
                          patm_min = coalesce(patm_min, patm_min.y),
                          temph_max = coalesce(temph_max, temph_max.y),
                          temph_min = coalesce(temph_min, temph_min.y)) %>%
-                  left_join(medias_tempmax, by = c("temph_max"), suffix = c("", ".y")) %>%
-                  mutate(urph_max = coalesce(urph_max, urph_max.y)) %>%
                   left_join(medias_tempmin, by = c("temph_min"), suffix = c("", ".y")) %>%
+                  mutate(urph_max = coalesce(urph_max, urph_max.y)) %>%
+                  left_join(medias_tempmax, by = c("temph_mmax"), suffix = c("", ".y")) %>%
                   mutate(urph_min = coalesce(urph_min, urph_min.y)) %>%
                   mutate(patm_max.y = NULL,
                          patm_min.y = NULL,
@@ -94,16 +97,18 @@ for(i in lista[2:length(lista)])
                                 "urph_min" = "V15") %>%
                           select(ID_estacao, local, estado, everything())
   
+  df_temp[df_temp == -9999] <- NA
+  
   medias_dia <- df_temp %>% group_by(dia) %>% 
     summarise(patm_max = round(mean(patm_max, na.rm = T),1),
               patm_min = round(mean(patm_min, na.rm = T),1),
               temph_max = round(mean(temph_max, na.rm = T),1),
               temph_min = round(mean(temph_min, na.rm = T),1))
   
-  medias_tempmax <- df_temp %>% group_by(temph_max) %>% 
+  medias_tempmax <- df_temp %>% group_by(temph_min) %>% 
     summarise(urph_max = round(mean(urph_max, na.rm = T),0))
   
-  medias_tempmin <- df_temp %>% group_by(temph_min) %>% 
+  medias_tempmin <- df_temp %>% group_by(temph_max) %>% 
     summarise(urph_min = round(mean(urph_min, na.rm = T),0))
   
   df_temp <- df_temp %>% ungroup () %>% droplevels(.)
@@ -113,9 +118,9 @@ for(i in lista[2:length(lista)])
            patm_min = coalesce(patm_min, patm_min.y),
            temph_max = coalesce(temph_max, temph_max.y),
            temph_min = coalesce(temph_min, temph_min.y)) %>%
-    left_join(medias_tempmax, by = c("temph_max"), suffix = c("", ".y")) %>%
-    mutate(urph_max = coalesce(urph_max, urph_max.y)) %>%
     left_join(medias_tempmin, by = c("temph_min"), suffix = c("", ".y")) %>%
+    mutate(urph_max = coalesce(urph_max, urph_max.y)) %>%
+    left_join(medias_tempmax, by = c("temph_max"), suffix = c("", ".y")) %>%
     mutate(urph_min = coalesce(urph_min, urph_min.y)) %>%
     mutate(patm_max.y = NULL,
            patm_min.y = NULL,
