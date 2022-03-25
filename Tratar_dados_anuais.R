@@ -13,7 +13,8 @@ pasta <- getwd()
 
 #Defines the year and set the folder of the files to be unified
 ano <- "2010"
-setwd(ano)
+fonte <- str_replace(pasta, "tratativa", "source")
+setwd(paste(fonte, "/", ano, sep = ""))
 
 #Lists the csv files for each weather station
 formato_arq <- "CSV"
@@ -45,7 +46,7 @@ df_unif <- df_unif %>% rename("dia" = "V1",
 #Replaces -9999 by NA
 df_unif[df_unif == -9999] <- NA
 
-#Replaces NA values by mean values - Grouped by day and temperatures - sAME YEAR
+#Replaces NA values by mean values - Grouped by day and temperatures - SAME YEAR
 medias_dia <- df_unif %>% group_by(dia) %>% 
                     summarise(patm_max = round(mean(patm_max, na.rm = T),1),
                               patm_min = round(mean(patm_min, na.rm = T),1),
@@ -105,10 +106,10 @@ for(i in lista[2:length(lista)])
               temph_max = round(mean(temph_max, na.rm = T),1),
               temph_min = round(mean(temph_min, na.rm = T),1))
   
-  medias_tempmax <- df_temp %>% group_by(temph_min) %>% 
+  medias_tempmin <- df_temp %>% group_by(temph_min) %>% 
     summarise(urph_max = round(mean(urph_max, na.rm = T),0))
   
-  medias_tempmin <- df_temp %>% group_by(temph_max) %>% 
+  medias_tempmax <- df_temp %>% group_by(temph_max) %>% 
     summarise(urph_min = round(mean(urph_min, na.rm = T),0))
   
   df_temp <- df_temp %>% ungroup () %>% droplevels(.)
