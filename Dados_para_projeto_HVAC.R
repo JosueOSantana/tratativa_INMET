@@ -11,10 +11,10 @@ library(psychrolib)
 #SI System for psychrolib library
 SetUnitSystem("SI")
 
-#Importando o primeiro csv como df principal
+#Generates the initial data frame with the first csv file
 df_proj <- read.csv2(paste("Dados unificados - ", "2010", ".csv", sep = ""))
 
-#Unificando os csv dos anos seguintes
+#Adds each csv to the main data frame
 for(i in 2011:2021)
 {
   df_temp <- read.csv2(paste("Dados unificados - ", i, ".csv", sep = ""))
@@ -64,19 +64,47 @@ df_proj <- df_proj %>% left_join(medias_mes, by = c("dia_mes", "ID_estacao"), su
 
 #Includes Wet Bulb Temperatures
 df_proj <- df_proj %>% mutate(tbu_max = round(GetTWetBulbFromRelHum(df_proj$temph_max, df_proj$urph_min/100, df_proj$patm_max*100),1),
-                              tbu_min = round(GetTWetBulbFromRelHum(df_proj$temph_min, df_proj$urph_max/100, df_proj$patm_min*100),1))
+                              tbu_min = round(GetTWetBulbFromRelHum(df_proj$temph_min, df_proj$urph_max/100, df_proj$patm_min*100),1)) %>%
+                       mutate(tbu = pmax(df_proj$tbu_max,df_proj$tbu_min),
+                              tbu_max = NULL,
+                              tbu_min = NULL)
 
-#--------------Importar dados geográficos das estações
+#Statistics for Cooling and Dehumidification
+df_tbuc <- df_proj %>% group_by(ID_estacao, temph_max) %>% summarise(tbuc=round(mean(tbu),1)) #Coincident wet temperature
+df_tbsc <- df_proj %>% group_by(ID_estacao, tbu) %>% summarise(tbsc=round(mean(temph_max),1)) #Coincident dry temperature
 
-#--------------gerar estatísticas
-#Cidade/UF
-#Latitude, longitude e altitude
-#Período - Contabilizar de acordo com cada estação
-#TBS, TBUc, TBU, TBSc
-#Frequência cumulativa de 0.4%, 1% e 2%
-#TBU máximo, TBS máximo e mínimo 
+df_result <- df_proj %>% group_by(ID_estacao) %>% summarise(ano_ini=min(lubridate::year(dia)),
+                                                            ano_fim=max(lubridate::year(dia)),
+                                                            tbs_max=max(temph_max),
+                                                            tbs_min=min(temph_min),
+                                                            tbs_996=round(quantile(temph_max, type=5, 0.996), 1),
+                                                            tbs_99=round(quantile(temph_max, type=5, 0.99), 1),
+                                                            tbs_98=round(quantile(temph_max, type=5, 0.98), 1),
+                                                            tbu_max=max(tbu),
+                                                            tbu_996=round(quantile(tbu, type=5, 0.996), 1),
+                                                            tbu_99=round(quantile(tbu, type=5, 0.99), 1),
+                                                            tbu_98=round(quantile(tbu, type=5, 0.98), 1))
+
+df_result <- df_result %>% ungroup () %>% droplevels(.)
+
+df_result <- df_result %>% left_join(df_tbuc, by = c("ID_estacao", "tbs_996" = "temph_max")) %>%
+                           rename("tbuc_996" = "tbuc") %>%
+                           left_join(df_tbuc, by = c("ID_estacao", "tbs_99" = "temph_max")) %>%
+                           rename("tbuc_99" = "tbuc") %>%
+                           left_join(df_tbuc, by = c("ID_estacao", "tbs_98" = "temph_max")) %>%
+                           rename("tbuc_98" = "tbuc") %>%
+                           left_join(df_tbsc, by = c("ID_estacao", "tbu_996" = "tbu")) %>%
+                           rename("tbsc_996" = "tbsc") %>%
+                           left_join(df_tbsc, by = c("ID_estacao", "tbu_99" = "tbu")) %>%
+                           rename("tbsc_99" = "tbsc") %>%
+                           left_join(df_tbsc, by = c("ID_estacao", "tbu_98" = "tbu")) %>%
+                           rename("tbsc_98" = "tbsc") %>%
+                           select(ID_estacao, ano_ini, ano_fim,
+                                  tbs_max, tbs_996, tbuc_996, tbs_99, tbuc_99, tbs_98, tbuc_98, tbs_min,
+                                  tbu_max, tbu_996, tbsc_996, tbu_99, tbsc_99, tbu_98, tbsc_98)
 
 #_____________________________________________
 
-#Generates a final csv file
-write.csv2(df_proj, "Dados para projeto HVAC.csv", row.names = FALSE)
+write.csv2(df_result, "Dados climáticos para projeto.csv", row.names = FALSE)
+
+#_____________________________________________

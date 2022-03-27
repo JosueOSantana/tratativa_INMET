@@ -12,9 +12,9 @@ library(stringr)
 pasta <- getwd()
 
 #Defines the year and set the folder of the files to be unified
-ano <- "2010"
-fonte <- str_replace(pasta, "tratativa", "source")
-setwd(paste(fonte, "/", ano, sep = ""))
+ano <- "2021" #Choose manually
+fonte <- paste(str_replace(pasta, "tratativa", "source"), "/", ano, sep = "")
+setwd(fonte)
 
 #Lists the csv files for each weather station
 formato_arq <- "CSV"
@@ -68,7 +68,7 @@ df_unif <- df_unif %>% left_join(medias_dia, by = c("dia"), suffix = c("", ".y")
                          temph_min = coalesce(temph_min, temph_min.y)) %>%
                   left_join(medias_tempmin, by = c("temph_min"), suffix = c("", ".y")) %>%
                   mutate(urph_max = coalesce(urph_max, urph_max.y)) %>%
-                  left_join(medias_tempmax, by = c("temph_mmax"), suffix = c("", ".y")) %>%
+                  left_join(medias_tempmax, by = c("temph_max"), suffix = c("", ".y")) %>%
                   mutate(urph_min = coalesce(urph_min, urph_min.y)) %>%
                   mutate(patm_max.y = NULL,
                          patm_min.y = NULL,
