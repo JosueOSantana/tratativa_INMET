@@ -16,7 +16,7 @@ ano <- "2021" #Choose manually
 fonte <- paste(str_replace(pasta, "tratativa", "source"), "/", ano, sep = "")
 setwd(fonte)
 
-#Lists the csv files for each weather station
+#Lists the csv files for each year
 formato_arq <- "CSV"
 lista <- dir(pattern=formato_arq)
 
@@ -142,3 +142,19 @@ write.csv2(df_unif, paste("Dados unificados - ", ano, ".csv", sep = ""), row.nam
 
 #_____________________________________________
 
+#Generates the initial data frame with the first csv file
+df_proj <- read.csv2(paste("Dados unificados - ", "2010", ".csv", sep = ""))
+
+#Adds each csv to the main data frame
+for(i in 2011:2021)
+{
+  df_temp <- read.csv2(paste("Dados unificados - ", i, ".csv", sep = ""))
+  df_proj <- dplyr::bind_rows(df_temp, df_proj) #Adds to the main data frame
+}
+
+#Separates data for each weather station
+for(i in lista_estacoes)
+{
+  df_temp <- dplyr::filter(df_proj, df_proj$ID_estacao == i)
+  write.csv2(df_temp, paste("Dados climáticos", i, ".csv", sep = ""), row.names = FALSE)
+}
