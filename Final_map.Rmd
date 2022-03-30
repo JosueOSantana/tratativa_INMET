@@ -1,0 +1,47 @@
+---
+title: "Final_map"
+author: "Josue Santana"
+date: "30/03/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+library(leaflet)
+library(readr)
+library(dplyr)
+
+df_temperaturas <- data.frame(read.csv2("Dados climáticos para projeto.csv"))
+
+df_dados <- data.frame(read.csv2("CatalogoEstacoesAutomaticas.csv"))
+df_dados <- df_dados %>% rename("ID_estacao" = "CD_ESTACAO",
+                                "local" = "DC_NOME",
+                                "UF" = "SG_ESTADO",
+                                "latitude" = "VL_LATITUDE",
+                                "longitude" = "VL_LONGITUDE",
+                                "altitude" = "VL_ALTITUDE") %>% 
+                         mutate("CD_SITUACAO" = NULL,
+                                "TIPO" = NULL,
+                                "DT_INICIO_OPERACAO" = NULL)
+  
+df_resultado <- df_temperaturas %>% left_join(df_dados, by = c("ID_estacao"))
+df_resultado <- df_resultado %>% na.omit()
+df_resultado$popup <- paste("<b><a>", df_resultado$local, "/", df_resultado$UF,"</a></b>", "<br/>",
+                            "Altitude: ", df_resultado$altitude, " m", "<br/>",
+                            "Tbs Máx.: ", df_resultado$tbs_max, " °C", "<br/>",
+                            "Tbs 99,6%: ", df_resultado$tbs_996, " °C", "<br/>",
+                            "Tbs 99,0%: ", df_resultado$tbs_99, " °C", "<br/>",
+                            "Tbs 98,0%: ", df_resultado$tbs_98, " °C", "<br/>",
+                            "Tbs Mín.: ", df_resultado$tbs_min, " °C", "<br/>",
+                            "Tbu Máx.: ", df_resultado$tbu_max, " °C", "<br/>",
+                            "Tbu 99,6%: ", df_resultado$tbu_996, " °C", "<br/>",
+                            "Tbu 99,0%: ", df_resultado$tbu_99, " °C", "<br/>",
+                            "Tbu 98,0%: ", df_resultado$tbu_98, " °C", "<br/>", sep ="")
+
+relatorio <- leaflet(df_resultado) %>%
+  addTiles() %>%
+  addMarkers(lat = df_resultado$latitude, lng = df_resultado$longitude, popup = df_resultado$popup)
+
+relatorio
+```
+
