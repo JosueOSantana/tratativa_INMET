@@ -30,6 +30,8 @@ df_resultado <- df_temperaturas %>% left_join(df_dados, by = c("ID_estacao"))
 df_resultado <- df_resultado %>% na.omit()
 df_resultado$popup <- paste("<b><a>", df_resultado$local, " - ", df_resultado$UF,"</a></b>", "<br/>",
                             "Altitude: ", df_resultado$altitude, " m", "<br/>",
+                            "Período: ", df_resultado$ano_ini, " - ", df_resultado$ano_fim, "<br/>",
+                            "<br/>",
                             "Tbs Máx.: ", df_resultado$tbs_max, " °C", "<br/>",
                             "Tbs 99,6%: ", df_resultado$tbs_996, " °C", "<br/>",
                             "Tbs 99,0%: ", df_resultado$tbs_99, " °C", "<br/>",
